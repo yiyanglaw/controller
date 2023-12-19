@@ -7,6 +7,7 @@ import RPi.GPIO as GPIO
 import time
 
 
+
 class RobotControllerApp:
     def __init__(self, root):
         self.root = root
@@ -62,6 +63,23 @@ class RobotControllerApp:
         self.LED_R = 22
         self.LED_G = 27
         self.LED_B = 24
+        # Definition of motor control pins
+        self.IN1 = 20
+        self.IN2 = 21
+        self.IN3 = 19
+        self.IN4 = 26
+        self.ENA = 16
+        self.ENB = 13
+
+        # Motor control pins initialization
+        self.motor_init()
+
+        # GPIO cleanup function when the program exits
+        root.protocol("WM_DELETE_WINDOW", self.cleanup_gpio)
+        
+        # Add a delay before starting motor control
+        time.sleep(2)
+
 
         # Set the GPIO port to BCM encoding mode.
         GPIO.setmode(GPIO.BCM)
@@ -192,20 +210,20 @@ class RobotControllerApp:
 
     # Define the functions for the buttons
     def button1_action(self):
-        messagebox.showinfo("Button UP", "Button 1 clicked")
+        self.move_forward()
 
     def button2_action(self):
-        messagebox.showinfo("Button LEFT", "Button 2 clicked")
+        self.move_left()
 
     def button3_action(self):
-        messagebox.showinfo("Button STOP", "Button 3 clicked")
+        self.stop_robot()
 
     def button4_action(self):
-        messagebox.showinfo("Button RIGHT", "Button 4 clicked")
+        self.move_right()
 
     def button5_action(self):
-        messagebox.showinfo("Button DOWN", "Button 5 clicked")
-        
+        self.move_backward()
+
         # Define the functions for the additional buttons
     def button6_action(self):
         messagebox.showinfo("Button ACC", "Button 6 clicked")
@@ -282,9 +300,111 @@ class RobotControllerApp:
         
         # Cleanup GPIO before exiting
         GPIO.cleanup()
+        
+    # Function to initialize motor control
+    def motor_init(self):
+        GPIO.setup(self.ENA, GPIO.OUT, initial=GPIO.HIGH)
+        GPIO.setup(self.IN1, GPIO.OUT, initial=GPIO.LOW)
+        GPIO.setup(self.IN2, GPIO.OUT, initial=GPIO.LOW)
+        GPIO.setup(self.ENB, GPIO.OUT, initial=GPIO.HIGH)
+        GPIO.setup(self.IN3, GPIO.OUT, initial=GPIO.LOW)
+        GPIO.setup(self.IN4, GPIO.OUT, initial=GPIO.LOW)
+        # Set the PWM pin and frequency is 2000hz
+        self.pwm_ENA = GPIO.PWM(self.ENA, 2000)
+        self.pwm_ENB = GPIO.PWM(self.ENB, 2000)
+        self.pwm_ENA.start(0)
+        self.pwm_ENB.start(0)
+
+    # Motor control functions
+    def run(self, delaytime):
+        GPIO.output(self.IN1, GPIO.HIGH)
+        GPIO.output(self.IN2, GPIO.LOW)
+        GPIO.output(self.IN3, GPIO.HIGH)
+        GPIO.output(self.IN4, GPIO.LOW)
+        self.pwm_ENA.ChangeDutyCycle(50)
+        self.pwm_ENB.ChangeDutyCycle(50)
+        time.sleep(delaytime)
+
+    def back(self, delaytime):
+        GPIO.output(self.IN1, GPIO.LOW)
+        GPIO.output(self.IN2, GPIO.HIGH)
+        GPIO.output(self.IN3, GPIO.LOW)
+        GPIO.output(self.IN4, GPIO.HIGH)
+        self.pwm_ENA.ChangeDutyCycle(50)
+        self.pwm_ENB.ChangeDutyCycle(50)
+        time.sleep(delaytime)
+
+    def left(self, delaytime):
+        GPIO.output(self.IN1, GPIO.LOW)
+        GPIO.output(self.IN2, GPIO.LOW)
+        GPIO.output(self.IN3, GPIO.HIGH)
+        GPIO.output(self.IN4, GPIO.LOW)
+        self.pwm_ENA.ChangeDutyCycle(50)
+        self.pwm_ENB.ChangeDutyCycle(50)
+        time.sleep(delaytime)
+
+    def right(self, delaytime):
+        GPIO.output(self.IN1, GPIO.HIGH)
+        GPIO.output(self.IN2, GPIO.LOW)
+        GPIO.output(self.IN3, GPIO.LOW)
+        GPIO.output(self.IN4, GPIO.LOW)
+        self.pwm_ENA.ChangeDutyCycle(50)
+        self.pwm_ENB.ChangeDutyCycle(50)
+        time.sleep(delaytime)
+
+    def spin_left(self, delaytime):
+        GPIO.output(self.IN1, GPIO.LOW)
+        GPIO.output(self.IN2, GPIO.HIGH)
+        GPIO.output(self.IN3, GPIO.HIGH)
+        GPIO.output(self.IN4, GPIO.LOW)
+        self.pwm_ENA.ChangeDutyCycle(50)
+        self.pwm_ENB.ChangeDutyCycle(50)
+        time.sleep(delaytime)
+
+    def spin_right(self, delaytime):
+        GPIO.output(self.IN1, GPIO.HIGH)
+        GPIO.output(self.IN2, GPIO.LOW)
+        GPIO.output(self.IN3, GPIO.LOW)
+        GPIO.output(self.IN4, GPIO.HIGH)
+        self.pwm_ENA.ChangeDutyCycle(50)
+        self.pwm_ENB.ChangeDutyCycle(50)
+        time.sleep(delaytime)
+
+    def brake(self, delaytime):
+        GPIO.output(self.IN1, GPIO.LOW)
+        GPIO.output(self.IN2, GPIO.LOW)
+        GPIO.output(self.IN3, GPIO.LOW)
+        GPIO.output(self.IN4, GPIO.LOW)
+        self.pwm_ENA.ChangeDutyCycle(50)
+        self.pwm_ENB.ChangeDutyCycle(50)
+        time.sleep(delaytime)
+    
+    
+     # Function to move the robot forward
+    def move_forward(self):
+        run(1)
+
+    # Function to move the robot backward
+    def move_backward(self):
+        back(1)
+
+    # Function to turn the robot left
+    def move_left(self):
+        left(1)
+
+    # Function to turn the robot right
+    def move_right(self):
+        right(1)
+
+    # Function to stop the robot
+    def stop_robot(self):
+        brake(1)
+    
     def cleanup_gpio(self):
         # Cleanup GPIO before exiting
         GPIO.cleanup()
+        
+        
         
 
     # Define the empty function for "About me"
